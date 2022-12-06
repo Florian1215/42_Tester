@@ -8,7 +8,7 @@ import random
 #		'-a' for print test args
 #		'evaluating' for check all
 
-length = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
+
 int_min = -1000
 int_max = 1000
 
@@ -16,6 +16,12 @@ makefile_cmd = 'make check'
 checker_path = 'checker'
 push_swap_path = 'push_swap'
 
+
+
+
+
+
+length = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
 os.popen(makefile_cmd).read()
 
 if not os.path.exists(push_swap_path) or not os.path.exists(checker_path):
@@ -26,7 +32,7 @@ if not os.path.exists(push_swap_path) or not os.path.exists(checker_path):
 if 'evaluating' in sys.argv:
 
 	def error(string_):
-		print(f"Error: with {args} we must have an \"Error\" msg, we have {res}")
+		print('Error: ' + string_)
 		input('continue: ')
 
 
@@ -35,27 +41,27 @@ if 'evaluating' in sys.argv:
 		return (res)
 
 	def cmd_check(args):
-		return os.popen(f'./{push_swap_path} {args}| ./{checker_path} {args}').read().removesuffix('\n')
+		return os.popen(f'./{push_swap_path} {args} | ./{checker_path} {args}').read().removesuffix('\n')
 
 	def cmd_count(args):
-		return int(re.findall('\d+', os.popen(f'./{push_swap_path} {args}| wc -l').read())[0])
+		return len(cmd(args).split('\n')) - 1
 
 
 	def cmd_error(args):
 		res = cmd(args)
 		if res != "Error\n":
-			error(f"Error: with {args} we must have an \"Error\" msg, we have {res}")
+			error(f"with {args} we must have an \"Error\" msg, we have {res}")
 		else:
 			print("\tOK")
 
 	def cmd_nothing_return(args):
 		if cmd(args):
-			error(f"Error: your program should return nothing - {args}")
+			error(f"your program should return nothing - {args}")
 		else:
 			print("\tOK")
 
 	def cmd_parsing(args):
-		if cmd(f'"{args}"') == "Error\n":
+		if cmd(args) == "Error\n":
 			error(f"Parsing error - {args}")
 		else:
 			print("\tOK")
@@ -160,10 +166,15 @@ if 'evaluating' in sys.argv:
 	cmd_nothing_return("1 2")
 
 	print("\n  Parsing")
-	cmd_parsing("0 5 8 9")
-	cmd_parsing("0 5 1 9 2")
-	cmd_parsing("5 6 8 9")
-	cmd_parsing("9 5 8 -1288")
+	cmd_parsing('"0 5 8 9"')
+	cmd_parsing('"0 5 1 9 2"')
+	cmd_parsing('"5 6 8 9"')
+	cmd_parsing('"9 5 8 -1288"')
+
+	cmd_parsing('"0 5 9" 8')
+	cmd_parsing('0 5 1 "9 2"')
+	cmd_parsing('"5" 6 8 9')
+	cmd_parsing('"9 5" 8 -1288')
 
 	print("\n\nSimple version:")
 
