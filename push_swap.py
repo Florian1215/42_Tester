@@ -3,6 +3,8 @@ import re
 import sys
 import random
 
+# Errors must be output on the STDOUT
+
 # python3.9 push_swap.py
 #		'\d+' for specify length of args
 #		'-a' for print test args
