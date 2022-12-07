@@ -50,7 +50,7 @@ if 'evaluating' in sys.argv:
 	def cmd_error(args):
 		res = cmd(args)
 		if res != "Error\n":
-			error(f"with {args} we must have an \"Error\" msg, we have {res}")
+			error(f"with {args} we must have an \"Error\" msg, we have '{res}'")
 		else:
 			print("\tOK")
 
@@ -170,6 +170,7 @@ if 'evaluating' in sys.argv:
 	cmd_nothing_return("1 2")
 
 	print("\n  Parsing")
+	cmd_error('""')
 	cmd_parsing('"0 5 8 9"')
 	cmd_parsing('"0 5 1 9 2"')
 	cmd_parsing('"5 6 8 9"')
