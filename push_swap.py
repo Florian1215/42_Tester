@@ -9,11 +9,11 @@ import random
 #		'evaluating' for check all
 
 
-int_min = -1000
-int_max = 1000
+int_min = -10000
+int_max = 10000
 
-makefile_cmd = 'make check'
-checker_path = 'checker'
+makefile_cmd = 'make'
+checker_path = 'checker_Mac'
 push_swap_path = 'push_swap'
 
 
