@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import random
+import time
 
 # Errors must be output on the STDOUT
 
@@ -9,6 +10,7 @@ import random
 #		'random_int' for specify length of args
 #		'-a' for print test args
 #		'evaluating' for check all
+#		'leaks' for test leaks
 
 
 int_min = -10000
@@ -17,11 +19,6 @@ int_max = 10000
 makefile_cmd = 'make'
 checker_path = 'checker_Mac'
 push_swap_path = 'push_swap'
-
-
-
-
-
 
 length = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
 os.popen(makefile_cmd).read()
@@ -200,6 +197,52 @@ if 'evaluating' in sys.argv:
 	max_pt = 100
 	for i in range(50):
 		max_pt = cmd_500(max_pt)
+elif 'leaks' in sys.argv:
+	def cmd_leaks(args):
+		os.system(f'leaks -atExit -- ./{push_swap_path} {args}')
+		time.sleep(0.2)
+
+
+	print("Leaks Error\n")
+	cmd_leaks("559 3 sdf9")
+	cmd_leaks("5hj 45 6 4")
+	cmd_leaks("5 45 6hj 4")
+	cmd_leaks("5 45 6 4 a")
+	cmd_leaks("5 45 48 s")
+	cmd_leaks("69 425 one 1")
+	cmd_leaks("5 4-5 6 58")
+	cmd_leaks("2 45 6 -")
+	cmd_leaks("2 - 6 3")
+	cmd_leaks("- 6 3")
+	cmd_leaks("2 6 3 6")
+	cmd_leaks("6 6 3")
+	cmd_leaks("3 6 3")
+	cmd_leaks("1 6 8 4 2 3 1")
+	cmd_leaks("1 2147483648 8 4 2 3")
+	cmd_leaks("1 6 8 2147483649 2 3")
+	cmd_leaks("1 6 -2147483649 4 2 3")
+	cmd_leaks("-2147483649 1 6 8 4 2 3")
+	cmd_leaks("")
+	cmd_leaks("42")
+	cmd_leaks("30")
+	cmd_leaks("-5")
+	cmd_leaks("0 1 2 3")
+	cmd_leaks("-185 26 48 8546")
+	cmd_leaks("0 1 2 3 4 5 6 7 8 9 10 11")
+	cmd_leaks("-554949 -2549 -695 15 45948 545498")
+	cmd_leaks("548 9898")
+	cmd_leaks("1 2")
+	cmd_leaks('""')
+	cmd_leaks('"0 5 8 9"')
+	cmd_leaks('"0 5 1 9 2"')
+	cmd_leaks('"5 6 8 9"')
+	cmd_leaks('"9 5 8 -1288"')
+	cmd_leaks('"0 5 9" 8')
+	cmd_leaks('0 5 1 "9 2"')
+	cmd_leaks('"5" 6 8 9')
+	cmd_leaks('"9 5" 8 -1288')
+	for k in (3, 5, 10, 50, 100, 500):
+		cmd_leaks(' '.join([str(i) for i in random.sample(range(int_min, int_max), k=k)]))
 else:
 	args = ' '.join([str(i) for i in random.sample(range(int_min, int_max), k=length)])
 
