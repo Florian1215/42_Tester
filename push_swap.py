@@ -10,7 +10,7 @@ import time
 #		'random_int' for specify length of args
 #		'-a' for print test args
 #		'evaluating' for check all
-#		'leaks' for test leaks
+#		'leaks' for test leaks *BETA*
 
 
 int_min = -10000
