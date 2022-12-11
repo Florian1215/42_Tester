@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import random
 import time
@@ -7,35 +6,60 @@ import time
 # Errors must be output on the STDOUT
 
 # python3.9 push_swap.py
-#		'random_int' for specify length of args
-#		'-a' for print test args
+#		'digit' for specify length of args ('-a' to see test args)
 #		'evaluating' for check all
-#		'leaks' for test leaks *BETA*
-#		'all random_int' test all combinaison of random_int
+#		'leaks' for test leaks
+#		'all' test all combinaison of digit
 
 
 int_min = -10000
 int_max = 10000
 
 makefile_cmd = 'make'
-checker_path = 'checker_Mac'
+checker_path = 'checker'
 push_swap_path = 'push_swap'
 
 
-
-# ------------------------------------------------------------
-
-
-length = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
-os.popen(makefile_cmd).read()
-
-if not os.path.exists(push_swap_path) or not os.path.exists(checker_path):
-	print(f'Error: don\'t find {push_swap_path} or {checker_path}')
-	exit()
+# General --------------------------------------------------------
+def get_random_number(k):
+	return ' '.join([str(nb) for nb in random.sample(range(int_min, int_max), k=k)])
 
 
+# ERROR ----------------------------------------------------------
+def error(string_):
+	print('Error: ' + string_)
+
+
+def cmd_error(args):
+	res = cmd(args)
+	if res != "Error\n":
+		error(f"With '{args}' we must have \"Error\", we have '{res}'")
+	else:
+		print("\tOK")
+
+
+def cmd_nothing_return(args):
+	if cmd(args):
+		error(f"Your program should return nothing, he return '{args}'")
+	else:
+		print("\tOK")
+
+
+def cmd_parsing(args):
+	if cmd(args) == "Error\n":
+		error(f"Parsing error with '{args}'")
+	else:
+		print("\tOK")
+
+
+def cmd_leaks(args):
+	os.system(f'leaks -atExit -- ./{push_swap_path} {args}')
+	time.sleep(0.4)
+
+
+# CMD ------------------------------------------------------------
 def cmd(args):
-	return (os.popen(f'./{push_swap_path} {args}').read())
+	return os.popen(f'./{push_swap_path} {args}').read()
 
 
 def cmd_check(args):
@@ -46,97 +70,67 @@ def cmd_count(args):
 	return len(cmd(args).split('\n')) - 1
 
 
-def cmd_all_n(n):
-	all = []
+def cmd_all_n(n, evaluating=False):
+	all_comb = []
+	all_count = []
+	res = [-1] * n
 
 	def rec(tab, index=0):
 		if index >= n:
 			if len(set(tab)) == n:
-				all.append(' '.join(str(k) for k in tab))
+				all_comb.append(' '.join(str(k) for k in tab))
 			return
 		for i in range(n):
 			tab[index] = i
 			rec(tab, index + 1)
 
-	res = [-1] * n
 	rec(res)
-	all_ct = []
-	for args in all:
-		check = cmd_check(args)
+
+	for comb in all_comb:
+		check = cmd_check(comb)
 		if check == "KO":
-			error(f"\tKO don't sort {args}")
-		ct = len(cmd(args).split('\n')) - 1
-		all_ct.append(ct)
-		if (n == 5 and ct > 12):
-			error(f"\tKO you sort in more than 12 instructions - '{args}'")
-		elif (n == 3 and ct > 3):
-			error(f"\tKO you sort in more than 3 instructions - '{args}'")
-		else:
-			print(f"\tOK in {ct}")
-	return all_ct
+			error(f"\tKO don't sort '{comb}'")
+		ct = len(cmd(comb).split('\n')) - 1
+		all_count.append(ct)
+		if n == 5 and ct > 12:
+			error(f"\tKO you sort in more than 12 instructions '{comb}'")
+		elif n == 3 and ct > 3:
+			error(f"\tKO you sort in more than 3 instructions '{comb}'")
+		elif not evaluating or n == 3 or all_comb.index(comb) % 20 == 0:
+			print("\tOK" + (f' in {ct}', '')[evaluating])
+	return all_count
 
 
-def error(string_):
-	print('Error: ' + string_)
+def cmd_middle(n):
+	args = get_random_number(n)
+	check = cmd_check(args)
+	if check == "KO":
+		error(f"\tKO: don't sort '{args}'")
+	else:
+		ct = cmd_count(args)
+		pt = 0
+		for max_ins in eval_pts[n]['pts']:
+			if ct < max_ins:
+				pt = eval_pts[n]['pts'][max_ins]
 
+				break
+		if eval_pts[n]['max'] < pt:
+			eval_pts[n]['max'] = pt
+			print(f"\tOK sort in {ct} - {pt} pts")
+			if '-a' in sys.argv:
+				print(f'ARGS = {args}')
+
+
+# CODE ---------------------------------------------------------------
+
+os.popen(makefile_cmd).read()
+eval_pts = {100: {'pts': {700: 5, 900: 4, 1100: 3, 1300: 2, 1500: 1}, 'max': -1}, 500: {'pts': {5500: 5, 7000: 4, 8500: 3, 10000: 2, 11500: 1}, 'max': -1}}
+
+if not os.path.exists(push_swap_path) or not os.path.exists(checker_path):
+	print(f'Error: don\'t find {push_swap_path} or {checker_path}')
+	exit()
 
 if 'evaluating' in sys.argv:
-	def cmd_error(args):
-		res = cmd(args)
-		if res != "Error\n":
-			error(f"with '{args}' we must have an \"Error\" msg, we have '{res}'")
-		else:
-			print("\tOK")
-
-	def cmd_nothing_return(args):
-		if cmd(args):
-			error(f"Your program should return nothing, he return '{args}'")
-		else:
-			print("\tOK")
-
-	def cmd_parsing(args):
-		if cmd(args) == "Error\n":
-			error(f"Parsing error with '{args}'")
-		else:
-			print("\tOK")
-
-	def cmd_100(max_pt):
-		args = ' '.join([str(i) for i in random.sample(range(int_min, int_max), k=100)])
-		check = cmd_check(args)
-		if check == "KO":
-			error(f"\tKO: don't sort {args}")
-			return (100)
-		else:
-			ct = cmd_count(args)
-			pts = {700: 5, 900: 4, 1100: 3, 1300: 2, 1500: 1}
-			pt = 0
-			for i in pts:
-				if ct < i:
-					pt = pts[i]
-					break
-			if pt < max_pt:
-				print(f"\tOK sort in {ct} - {pt} pts")
-			return pt
-
-	def cmd_500(max_pt):
-		args = ' '.join([str(i) for i in random.sample(range(int_min, int_max), k=500)])
-		check = cmd_check(args)
-		if check == "KO":
-			error(f"\tKO don't sort {args}")
-			return (100)
-		else:
-			ct = cmd_count(args)
-			pts = {5500: 5, 7000: 4, 8500: 3, 10000: 2, 11500: 1}
-			pt = 0
-			for i in pts:
-				if ct < i:
-					pt = pts[i]
-					break
-			if pt < max_pt:
-				print(f"\tOK sort in {ct} - {pt} pts")
-			return pt
-
-
 	print("Error management:")
 
 	print("  Non numeric")
@@ -187,32 +181,23 @@ if 'evaluating' in sys.argv:
 	cmd_parsing('"5" 6 8 9')
 	cmd_parsing('"9 5" 8 -1288')
 
-	print("\n\nSimple version:")
+	print("\nSimple version:")
 
-	print("\n  3 args")
-	cmd_all_n(3)
+	print("  3 args")
+	cmd_all_n(3, True)
 	print("\n  5 args")
-	cmd_all_n(5)
+	cmd_all_n(5, True)
 
-	print("\n\nMiddle version:")
-	print("\n  100 random")
-	max_pt = 100
-	for i in range(100):
-		max_pt = cmd_100(max_pt)
+	print("\nMiddle version:")
+
+	print("  100 random")
+	for _ in range(100):
+		cmd_middle(100)
 
 	print("\n  500 random")
-	max_pt = 100
-	for i in range(50):
-		max_pt = cmd_500(max_pt)
-elif 'all' in sys.argv:
-	n_ = int(sys.argv[2]) if len(sys.argv) == 3 and sys.argv[2].isdigit() else 5
-	all_ct = cmd_all_n(n_)
-	print(f'mean = {int(sum(all_ct) / len(all_ct))} - max_len = {max(all_ct)}')
+	for _ in range(50):
+		cmd_middle(500)
 elif 'leaks' in sys.argv:
-	def cmd_leaks(args):
-		os.system(f'leaks -atExit -- ./{push_swap_path} {args}')
-		time.sleep(0.2)
-
 
 	print("Leaks Error\n")
 	cmd_leaks("559 3 sdf9")
@@ -252,14 +237,20 @@ elif 'leaks' in sys.argv:
 	cmd_leaks('0 5 1 "9 2"')
 	cmd_leaks('"5" 6 8 9')
 	cmd_leaks('"9 5" 8 -1288')
+
 	for k in (3, 5, 10, 50, 100, 500):
-		cmd_leaks(' '.join([str(i) for i in random.sample(range(int_min, int_max), k=k)]))
+		cmd_leaks(get_random_number(k))
+
+elif 'all' in sys.argv:
+	all_ct = cmd_all_n(int(sys.argv[2]) if len(sys.argv) == 3 and sys.argv[2].isdigit() else 5)
+	print(f'mean = {int(sum(all_ct) / len(all_ct))} - max_len = {max(all_ct)}')
+
 else:
-	args = ' '.join([str(i) for i in random.sample(range(int_min, int_max), k=length)])
-
-	check = os.popen(f'./{push_swap_path} {args}| ./{checker_path} {args}').read().removesuffix('\n')
-	commands = int(re.findall('\d+', os.popen(f'./push_swap {args}| wc -l').read())[0])
-
-	print(f'{check} - len {length} in {commands} commands')
-	if '-a' in sys.argv:
-		print(f'ARGS = {args}')
+	length_args = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
+	if length_args in eval_pts:
+		cmd_middle(length_args)
+	else:
+		args_check = get_random_number(length_args)
+		print(f'{cmd_check(args_check)} - len {len(args_check)} in {cmd_count(args_check)} commands')
+		if '-a' in sys.argv:
+			print(f'ARGS = {args_check}')
