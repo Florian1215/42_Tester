@@ -207,7 +207,7 @@ if 'evaluating' in sys.argv:
 elif 'all' in sys.argv:
 	n_ = int(sys.argv[2]) if len(sys.argv) == 3 and sys.argv[2].isdigit() else 5
 	all_ct = cmd_all_n(n_)
-	print(f'mean = {sum(all_ct) / len(all_ct)} - max_len = {max(all_ct)}')
+	print(f'mean = {int(sum(all_ct) / len(all_ct))} - max_len = {max(all_ct)}')
 elif 'leaks' in sys.argv:
 	def cmd_leaks(args):
 		os.system(f'leaks -atExit -- ./{push_swap_path} {args}')
