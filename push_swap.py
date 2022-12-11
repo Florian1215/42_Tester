@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import random
+import math
 import time
 
 # Errors must be output on the STDOUT
@@ -213,18 +214,22 @@ elif 'all' in sys.argv:
 
 		res = [-1] * n
 		rec(res)
+		all_ct = []
 		for args in all:
 			check = cmd_check(args)
 			if check == "KO":
 				error(f"\tKO don't sort {args}")
 				break
 			ct = len(cmd(args).split('\n')) - 1
+			all_ct.append(ct)
 			if (n == 5 and ct > 12):
 				error(f"\tKO you sort in more than 12 instructions - {args}")
 			elif (n == 3 and ct > 3):
 				error(f"\tKO you sort in more than 3 instructions - {args}")
 			else:
-				print("\tOK")
+				print(f"\tOK - {ct}")
+		print(f'mean = {sum(all_ct) / len(all_ct)} - max_len = {max(all_ct)}')
+
 
 	n_ = int(sys.argv[2]) if len(sys.argv) == 3 and sys.argv[2].isdigit() else 5
 	cmd_all_n(n_)
