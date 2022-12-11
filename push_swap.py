@@ -11,6 +11,7 @@ import time
 #		'-a' for print test args
 #		'evaluating' for check all
 #		'leaks' for test leaks *BETA*
+#		'all random_int' test all combinaison of random_int
 
 
 int_min = -10000
@@ -197,6 +198,36 @@ if 'evaluating' in sys.argv:
 	max_pt = 100
 	for i in range(50):
 		max_pt = cmd_500(max_pt)
+elif 'all' in sys.argv:
+	def cmd_all_n(n):
+		all = []
+
+		def rec(tab, index=0):
+			if index >= n:
+				if len(set(tab)) == n:
+					all.append(' '.join(str(k) for k in tab))
+				return
+			for i in range(n):
+				tab[index] = i
+				rec(tab, index + 1)
+
+		res = [-1] * n
+		rec(res)
+		for args in all:
+			check = cmd_check(args)
+			if check == "KO":
+				error(f"\tKO don't sort {args}")
+				break
+			ct = len(cmd(args).split('\n')) - 1
+			if (n == 5 and ct > 12):
+				error(f"\tKO you sort in more than 12 instructions - {args}")
+			elif (n == 3 and ct > 3):
+				error(f"\tKO you sort in more than 3 instructions - {args}")
+			else:
+				print("\tOK")
+
+	n_ = int(sys.argv[2]) if len(sys.argv) == 3 and sys.argv[2].isdigit() else 5
+	cmd_all_n(n_)
 elif 'leaks' in sys.argv:
 	def cmd_leaks(args):
 		os.system(f'leaks -atExit -- ./{push_swap_path} {args}')
