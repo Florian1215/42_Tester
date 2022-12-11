@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import random
-import math
 import time
 
 # Errors must be output on the STDOUT
@@ -22,6 +21,11 @@ makefile_cmd = 'make'
 checker_path = 'checker_Mac'
 push_swap_path = 'push_swap'
 
+
+
+# ------------------------------------------------------------
+
+
 length = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
 os.popen(makefile_cmd).read()
 
@@ -30,70 +34,71 @@ if not os.path.exists(push_swap_path) or not os.path.exists(checker_path):
 	exit()
 
 
+def cmd(args):
+	return (os.popen(f'./{push_swap_path} {args}').read())
+
+
+def cmd_check(args):
+	return os.popen(f'./{push_swap_path} {args} | ./{checker_path} {args}').read().removesuffix('\n')
+
+
+def cmd_count(args):
+	return len(cmd(args).split('\n')) - 1
+
+
+def cmd_all_n(n):
+	all = []
+
+	def rec(tab, index=0):
+		if index >= n:
+			if len(set(tab)) == n:
+				all.append(' '.join(str(k) for k in tab))
+			return
+		for i in range(n):
+			tab[index] = i
+			rec(tab, index + 1)
+
+	res = [-1] * n
+	rec(res)
+	all_ct = []
+	for args in all:
+		check = cmd_check(args)
+		if check == "KO":
+			error(f"\tKO don't sort {args}")
+		ct = len(cmd(args).split('\n')) - 1
+		all_ct.append(ct)
+		if (n == 5 and ct > 12):
+			error(f"\tKO you sort in more than 12 instructions - '{args}'")
+		elif (n == 3 and ct > 3):
+			error(f"\tKO you sort in more than 3 instructions - '{args}'")
+		else:
+			print(f"\tOK in {ct}")
+	return all_ct
+
+
+def error(string_):
+	print('Error: ' + string_)
+
+
 if 'evaluating' in sys.argv:
-
-	def error(string_):
-		print('Error: ' + string_)
-		input('continue: ')
-
-
-	def cmd(args):
-		res = os.popen(f'./{push_swap_path} {args}').read()
-		return (res)
-
-	def cmd_check(args):
-		return os.popen(f'./{push_swap_path} {args} | ./{checker_path} {args}').read().removesuffix('\n')
-
-	def cmd_count(args):
-		return len(cmd(args).split('\n')) - 1
-
-
 	def cmd_error(args):
 		res = cmd(args)
 		if res != "Error\n":
-			error(f"with {args} we must have an \"Error\" msg, we have '{res}'")
+			error(f"with '{args}' we must have an \"Error\" msg, we have '{res}'")
 		else:
 			print("\tOK")
 
 	def cmd_nothing_return(args):
 		if cmd(args):
-			error(f"your program should return nothing - {args}")
+			error(f"Your program should return nothing, he return '{args}'")
 		else:
 			print("\tOK")
 
 	def cmd_parsing(args):
 		if cmd(args) == "Error\n":
-			error(f"Parsing error - {args}")
+			error(f"Parsing error with '{args}'")
 		else:
 			print("\tOK")
-
-
-	def cmd_all_n(n):
-		all = []
-
-		def rec(tab, index=0):
-			if index >= n:
-				if len(set(tab)) == n:
-					all.append(' '.join(str(k) for k in tab))
-				return
-			for i in range(n):
-				tab[index] = i
-				rec(tab, index + 1)
-		
-		res = [-1] * n
-		rec(res)
-		for args in all:
-			check = cmd_check(args)
-			if check == "KO":
-				error(f"\tKO don't sort {args}")
-				break
-			ct = cmd_count(args)
-			if (n == 5 and ct > 12):
-				error(f"\tKO you sort in more than 12 instructions - {args}")
-			elif (n == 3 and ct > 3):
-				error(f"\tKO you sort in more than 3 instructions - {args}")
-			elif all.index(args) % 20 == 0 or n == 3:
-				print("\tOK")
 
 	def cmd_100(max_pt):
 		args = ' '.join([str(i) for i in random.sample(range(int_min, int_max), k=100)])
@@ -200,39 +205,9 @@ if 'evaluating' in sys.argv:
 	for i in range(50):
 		max_pt = cmd_500(max_pt)
 elif 'all' in sys.argv:
-	def cmd_all_n(n):
-		all = []
-
-		def rec(tab, index=0):
-			if index >= n:
-				if len(set(tab)) == n:
-					all.append(' '.join(str(k) for k in tab))
-				return
-			for i in range(n):
-				tab[index] = i
-				rec(tab, index + 1)
-
-		res = [-1] * n
-		rec(res)
-		all_ct = []
-		for args in all:
-			check = cmd_check(args)
-			if check == "KO":
-				error(f"\tKO don't sort {args}")
-				break
-			ct = len(cmd(args).split('\n')) - 1
-			all_ct.append(ct)
-			if (n == 5 and ct > 12):
-				error(f"\tKO you sort in more than 12 instructions - {args}")
-			elif (n == 3 and ct > 3):
-				error(f"\tKO you sort in more than 3 instructions - {args}")
-			else:
-				print(f"\tOK - {ct}")
-		print(f'mean = {sum(all_ct) / len(all_ct)} - max_len = {max(all_ct)}')
-
-
 	n_ = int(sys.argv[2]) if len(sys.argv) == 3 and sys.argv[2].isdigit() else 5
-	cmd_all_n(n_)
+	all_ct = cmd_all_n(n_)
+	print(f'mean = {sum(all_ct) / len(all_ct)} - max_len = {max(all_ct)}')
 elif 'leaks' in sys.argv:
 	def cmd_leaks(args):
 		os.system(f'leaks -atExit -- ./{push_swap_path} {args}')
