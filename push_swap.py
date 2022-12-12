@@ -144,6 +144,8 @@ if 'evaluating' in sys.argv:
     cmd_error("2 45 6 -")
     cmd_error("2 - 6 3")
     cmd_error("- 6 3")
+    cmd_error("1-2 6 3")
+    cmd_error("-158 6 3-5")
 
     print("\n  Duplicate args")
     cmd_error("2 6 3 6")
