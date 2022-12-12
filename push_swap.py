@@ -16,7 +16,7 @@ int_min = -10000
 int_max = 10000
 
 makefile_cmd = 'make'
-checker_path = 'checker'
+checker_path = 'checker_Mac'
 push_swap_path = 'push_swap'
 
 
@@ -247,14 +247,14 @@ elif 'all' in sys.argv:
 
 else:
 	length_args = int(sys.argv[1]) if len(sys.argv) >= 2 and sys.argv[1].isdigit() else 100
+	n_time = int(sys.argv[2]) if len(sys.argv) >= 3 and sys.argv[2].isdigit() else 1
 	if length_args in eval_pts:
-		if len(sys.argv) >= 3 and sys.argv[2].isdigit():
-			for i in range(int(sys.argv[2])):
-				cmd_middle(length_args)
-		else:
+		for _ in range(n_time):
+			eval_pts[length_args]['max'] = -1
 			cmd_middle(length_args)
 	else:
-		args_check = get_random_number(length_args)
-		print(f'{cmd_check(args_check)} - len {len(args_check)} in {cmd_count(args_check)} commands')
-		if '-a' in sys.argv:
-			print(f'ARGS = {args_check}')
+		for _ in range(n_time):
+			args_check = get_random_number(length_args)
+			print(f'{cmd_check(args_check)} - len {len(args_check.split(" "))} in {cmd_count(args_check)} commands')
+			if '-a' in sys.argv:
+				print(f'ARGS = {args_check}')
