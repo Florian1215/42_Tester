@@ -246,9 +246,13 @@ elif 'all' in sys.argv:
 	print(f'mean = {int(sum(all_ct) / len(all_ct))} - max_len = {max(all_ct)}')
 
 else:
-	length_args = int(sys.argv[1]) if len(sys.argv) == 2 and sys.argv[1].isdigit() else 100
+	length_args = int(sys.argv[1]) if len(sys.argv) >= 2 and sys.argv[1].isdigit() else 100
 	if length_args in eval_pts:
-		cmd_middle(length_args)
+		if len(sys.argv) >= 3 and sys.argv[2].isdigit():
+			for i in range(int(sys.argv[2])):
+				cmd_middle(length_args)
+		else:
+			cmd_middle(length_args)
 	else:
 		args_check = get_random_number(length_args)
 		print(f'{cmd_check(args_check)} - len {len(args_check)} in {cmd_count(args_check)} commands')
